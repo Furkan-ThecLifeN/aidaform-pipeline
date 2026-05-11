@@ -5,6 +5,6 @@ import { PayloadAnalyzerService } from './services/payload-analyzer.service';
 
 @Module({
   controllers: [AidaformController],
-  providers: [AidaformService, PayloadAnalyzerService]
+  providers: [AidaformService, PayloadAnalyzerService],
 })
 export class AidaformModule {}
