@@ -1,52 +1,44 @@
-import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { PayloadAnalyzerService } from './services/payload-analyzer.service';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { RawRepository } from './repositories/raw.repository';
+import { ResponseRepository } from './repositories/response.repository';
+import { NormalizationService } from './services/normalization.service';
 
 @Injectable()
 export class AidaformService {
   private readonly logger = new Logger(AidaformService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly analyzer: PayloadAnalyzerService,
+    private readonly rawRepo: RawRepository,
+    private readonly responseRepo: ResponseRepository,
+    private readonly normalizer: NormalizationService,
   ) {}
 
   async handleIncomingWebhook(rawBody: string, headers: any) {
-    const data = JSON.parse(rawBody);
-    const requestId = headers['x-request-id'] ?? 'missing';
+    const payload = JSON.parse(rawBody);
 
     try {
-      const existing = await this.prisma.surveyRawSubmission.findUnique({
-        where: {
-          submissionId: data.submission_id,
-        },
-      });
-
-      if (existing) {
+      const exists = await this.rawRepo.exists(payload.submission_id);
+      if (exists) {
+        this.logger.warn(`Duplicate submission: ${payload.submission_id}`);
         return { status: 'duplicate' };
       }
 
-      const saved = await this.prisma.surveyRawSubmission.create({
-        data: {
-          submissionId: data.submission_id,
-          payload: data,
-        },
-      });
+      await this.rawRepo.save(payload, headers);
 
-      const analysis = this.analyzer.analyze(data);
+      const normalized = this.normalizer.normalize(payload);
+
+      const savedResponse = await this.responseRepo.save(normalized);
+
+      this.logger.log(`Success processing: ${payload.submission_id}`);
 
       return {
         status: 'success',
-        id: saved.id,
-        analysis,
+        submissionId: payload.submission_id,
+        dbId: savedResponse.id
       };
-    } catch (e) {
-      this.logger.error(e);
-      throw new InternalServerErrorException('Webhook failed');
+    } catch (error) {
+      this.logger.error('Data pipeline error:', error);
+      throw new InternalServerErrorException('Webhook pipeline failed');
     }
   }
 }
