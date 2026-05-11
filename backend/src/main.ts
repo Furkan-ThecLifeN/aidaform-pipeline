@@ -1,15 +1,18 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { Logger } from 'nestjs-pino';
-
 import { AppModule } from './app.module';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
 
-  app.useLogger(app.get(Logger));
+  // 🔥 RAW BODY ONLY webhook route
+  app.use(
+    '/webhooks/aidaform',
+    express.raw({ type: 'application/json' }),
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -21,4 +24,5 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT || 8080);
 }
+
 bootstrap();

@@ -1,22 +1,26 @@
 import {
-  Body,
   Controller,
-  Headers,
-  HttpCode,
   Post,
+  Req,
+  UseGuards,
+  HttpCode,
 } from '@nestjs/common';
 import { AidaformService } from './aidaform.service';
+import { AidaformSignatureGuard } from './guards/aidaform-signature.guard';
 
 @Controller('webhooks/aidaform')
 export class AidaformController {
-  constructor(private readonly aidaformService: AidaformService) {}
+  constructor(private readonly service: AidaformService) {}
 
   @Post()
   @HttpCode(200)
-  async handleWebhook(
-    @Body() body: any,
-    @Headers() headers: Record<string, any>,
-  ) {
-    return this.aidaformService.handleIncomingWebhook(body, headers);
+  @UseGuards(AidaformSignatureGuard)
+  async handleWebhook(@Req() req: any) {
+    const rawBody = req.body.toString();
+
+    return this.service.handleIncomingWebhook(
+      rawBody,
+      req.headers,
+    );
   }
 }

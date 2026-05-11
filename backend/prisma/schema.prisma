@@ -4,4 +4,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model SurveyRawSubmission {
+  id           Int      @id @default(autoincrement())
+  submissionId String   @unique
+  payload      Json
+  createdAt    DateTime @default(now())
 }

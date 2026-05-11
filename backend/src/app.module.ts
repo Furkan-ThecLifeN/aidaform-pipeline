@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from 'nestjs-pino';
+
 import { AidaformModule } from './modules/aidaform/aidaform.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
-import { MiddlewareConsumer } from '@nestjs/common';
 
 @Module({
   imports: [
@@ -12,7 +12,6 @@ import { MiddlewareConsumer } from '@nestjs/common';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-
         transport:
           process.env.NODE_ENV !== 'production'
             ? {
@@ -23,7 +22,6 @@ import { MiddlewareConsumer } from '@nestjs/common';
                 },
               }
             : undefined,
-
         autoLogging: true,
       },
     }),
