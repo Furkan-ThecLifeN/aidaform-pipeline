@@ -19,14 +19,13 @@ export class AidaformService {
     const parsed = this.parser.parseAnswers(body);
 
     try {
-      const result =
-        await this.prisma.surveySubmission.create({
-          data: {
-            submissionId: body.submission_id,
-            payload: body,
-            parsedAnswers: parsed,
-          },
-        });
+      const result = await this.prisma.surveySubmission.create({
+        data: {
+          submissionId: body.submission_id,
+          payload: body,
+          parsedAnswers: parsed,
+        },
+      });
 
       return {
         success: true,
