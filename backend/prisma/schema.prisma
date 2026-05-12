@@ -7,26 +7,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-//
-// 🧱 RAW LAYER (HAM VERİ)
-//
-model SurveyRawSubmission {
-  id            Int      @id @default(autoincrement())
+model SurveySubmission {
+  id            String   @id @default(cuid())
   submissionId  String   @unique
   payload       Json
-  headers       Json?
-  receivedAt    DateTime @default(now())
-
-  @@index([submissionId])
-}
-
-//
-// 🧱 NORMALIZED LAYER (İŞLENMİŞ VERİ)
-//
-model SurveyResponse {
-  id            Int      @id @default(autoincrement())
-  submissionId  String   @unique
-  answers       Json
+  parsedAnswers Json?
   createdAt     DateTime @default(now())
 
   @@index([submissionId])

@@ -8,11 +8,9 @@ async function bootstrap() {
     bufferLogs: true,
   });
 
-  // 🔥 RAW BODY ONLY webhook route
-  app.use(
-    '/webhooks/aidaform',
-    express.raw({ type: 'application/json' }),
-  );
+  app.use(express.json());
+
+  app.use(express.urlencoded({ extended: true }));
 
   app.useGlobalPipes(
     new ValidationPipe({
